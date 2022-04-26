@@ -1,5 +1,10 @@
 References:
 
+- https://developer.mozilla.org/en-US/
+- Documentation for all crate dependencies
+- Rust std documentation
+- Cargo documentation
+
 Referenced on Mon 25 Apr 2022:
 - https://stackoverflow.com/questions/48684703/javascript-how-to-store-images-on-memory-and-load-them-from-memory-insteaid-of
 - https://blog.teamtreehouse.com/learn-asynchronous-image-loading-javascript

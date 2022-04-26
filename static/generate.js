@@ -1,16 +1,15 @@
 function generate(ev) {
-  let images = document.getElementsByClassName('texture')
-  let rem = images[0]
-  while(rem !== undefined) {
-    rem.remove()
-    rem = images[0]
-  }
+  const button = document.getElementById('generate-button');
+  button.setAttribute('disabled', 'true');
+  button.textContent = "Generating…"
   
-  let output = document.getElementById('output');
-  let image = document.createElement('img');
+  // Remove all outputs from the output pane
+  let outputs = document.getElementsByClassName('output-result')
+  while(outputs[0] !== undefined) {
+    outputs[0].remove()
+  }
 
-  image.setAttribute('class', 'texture');
-
+  let outputPane = document.getElementById('output');
   // The following fetch was adapted from the highest rated answer here
   // (the one by maxpoj on May 9, 2018).
   // Referenced on Mon 25 Apr
@@ -21,11 +20,30 @@ function generate(ev) {
   // createObjectURL allows me to create an url to the data
   // returned by the fetch.
   fetch('generate', {headers: {'Cache-Control': 'no-cache'}})
-    .then((response) => response.blob())
+    .then((response) => {
+      switch(response.status) {
+        case 200:
+          return response.blob()
+        case 503:
+          throw Error("Service unavailable")
+      }
+    })
     .then((blob) => {
       const url = URL.createObjectURL(blob)
+      const image = document.createElement('img');
+      image.setAttribute('class', 'texture output-result');
       image.setAttribute('src', url);
-      output.appendChild(image);
+      outputPane.appendChild(image);
+    })
+    .catch((error) => {
+      const errorMessage = document.createElement('p');
+      errorMessage.textContent = error.toString(); // "Failed to obtain image from the service, is it down?";
+      errorMessage.setAttribute('class', 'error-message output-result');
+      outputPane.appendChild(errorMessage);
+    })
+    .finally(() => {
+      button.removeAttribute('disabled');
+      button.textContent = "Generate"
     });
 }
 
