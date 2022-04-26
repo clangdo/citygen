@@ -1,9 +1,9 @@
-// This is far from minimal, and it doesn't seem to work the way
-// I want it to yet.
+/* This is far from minimal, and it doesn't seem to work the way
+ * I want it to yet. */
 
-// In progress...
+/* In progress... */
 
-// Making things fullscreen
+/* Making things fullscreen */
 :root {
   --bg-gray: #999;
   --fg-gray: #222;
@@ -31,7 +31,7 @@ body {
   justify-content: center;
 }
 
-// Button styling
+/* Button styling */
 #button-box {
   position: absolute;
   padding: 0.5em;
@@ -57,7 +57,7 @@ body {
   border: 0.2rem solid var(--fg-gray);
 }
 
-// Editor parts (including output panel)
+/* Editor parts (including output panel) */
 #editor {
   position: absolute;
   top: 0;
