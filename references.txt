@@ -1,0 +1,7 @@
+References:
+
+Referenced on Mon 25 Apr 2022:
+- https://stackoverflow.com/questions/48684703/javascript-how-to-store-images-on-memory-and-load-them-from-memory-insteaid-of
+- https://blog.teamtreehouse.com/learn-asynchronous-image-loading-javascript
+- https://www.techrepublic.com/article/preloading-and-the-javascript-image-object/
+- https://stackoverflow.com/questions/50248329/fetch-image-from-api
