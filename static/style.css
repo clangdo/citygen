@@ -5,18 +5,28 @@
 
 /* Making things fullscreen */
 :root {
+  --bg-white: #EEE;
   --bg-gray: #999;
   --fg-gray: #222;
   --fg-gray-hover: #444;
+
+  --border-width: 0.2rem;
+  --button-bar-height: 5rem;
+
+  --golden-ratio: 0.63;
+  --label-bar-height: calc(var(--golden-ratio) * var(--button-bar-height));
+
+  --editor-status-height: calc(var(--button-bar-height) * calc(1 - var(--golden-ratio)) + 1rem);
 }
 
 html, body {
+  background-color: var(--bg-white);
   font-size: 16pt;
   margin: 0;
   padding: 0;
   width: 100vw;
   height: 100vh;
-  max-height: 100%;
+  max-height: 100vh;
 }
 
 #button-bar {
@@ -31,13 +41,14 @@ html, body {
 /* Button styling */
 #button-box {
   position: absolute;
-  padding: 0.5em;
+  height: var(--button-bar-height);
+  padding: 0 0.5rem;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
   border-radius: 0 0 1rem 1rem;
-  border: 0.2rem solid var(--fg-gray);
+  border: var(--border-width) solid var(--fg-gray);
   border-top: none;
   background-color: var(--bg-gray);
   
@@ -47,7 +58,7 @@ html, body {
   padding: 0.5rem;
   font-size: 20pt;
   background-color: #2C2;
-  border: 0.2rem solid var(--fg-gray);
+  border: var(--border-width) solid var(--fg-gray);
   border-radius: 0.5rem;
   margin: 0.5rem;
 }
@@ -60,11 +71,11 @@ html, body {
 #generate-button:disabled {
   background-color: #444;
   color: #AAA;
-  border: 0.2rem solid var(--fg-gray);
+  border: var(--border-width) solid var(--fg-gray);
 }
 
 /* Editor parts (including output panel) */
-#editor {
+#workspace {
   width: 100%;
   height: 100%;
   max-height: 100%;
@@ -72,20 +83,14 @@ html, body {
   grid-template-columns: 50% 50%;
 }
 
-#editor>* {
-  border: solid 0.4rem var(--fg-gray);
-  display: flex;
-  flex-direction: column;
-}
-
 .label-bar {
   position: sticky;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem 0;
+  min-height: var(--label-bar-height);
   background-color: var(--bg-gray);
-  border-bottom: 0.2rem solid var(--fg-gray);
+  border-bottom: var(--border-width) solid var(--fg-gray);
 }
 
 .label-bar>h2 {
@@ -93,28 +98,91 @@ html, body {
   background-color: var(--bg-gray);
 }
 
+.header-button {
+  font-size: 22pt;
+  border: none;
+  border-bottom: var(--border-width) solid var(--fg-gray);
+  padding: 0.5rem 0;
+  border-radius: 0.9rem 0.9rem 0 0;
+  background-color: var(--bg-white);
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: flex-start;
+}
+
+.header-button>* {
+  margin: 0 0.5em;
+}
+
+.header-button:hover {
+  background-color: var(--bg-gray);
+}
+
+.helptext {
+  font-size: 14pt;
+  color: var(--fg-grey);
+}
+.grow {
+  flex-grow: 1;
+}
+
+.right-align {
+  text-align: right;
+}
+
 .container {
-  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  max-height: 100vh;
+}
+
+.status {
+  min-height: var(--editor-status-height);
 }
 
 .texture {
-  max-width: 90%;
+  object-fit: contain;
+  margin: auto;
+  padding: 1rem;
+  max-width: calc(100% - 2rem);
 }
 
-#script-editor {
+.texture-container {
+  border: var(--border-width) solid var(--fg-gray);
+  border-radius: 1rem;
+  max-height: unset;
+}
+
+#output-container {
+  border-left: calc(0.5 * var(--border-width)) solid var(--fg-gray);
+}
+
+#editor-container {
+  border-right: calc(0.5 * var(--border-width)) solid var(--fg-gray);
+}
+
+#editor {
   width: 95%;
   height: 95%;
   resize: none;
   border: none;
-
+  background: var(--bg-white)
 }
 
 #output {
   flex-grow: 1;
+  flex-shrink: 0;
+  max-height: calc(100% - var(--label-bar-height) - var(--editor-status-height) - var(--border-width));
   display: flex;
-  padding-top: 3rem;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+}
+
+#output>* {
+  max-width: 90%;
 }
 
 .vertscroll {

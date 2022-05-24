@@ -4,28 +4,33 @@
   <head>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="static/style.css" />
+    <!-- The following line is adapted from https://fontawesome.com/docs/web/setup/host-yourself/webfonts -->
+    <link rel="stylesheet" href="vendor/fontawesome-free-6.1.1/css/solid.css" />
     <script src="static/generate.js" defer="true"></script>
+    <script src="static/collapse.js" defer="true"></script>
   </head>
   <body id="body" lang="en-US" onkeydown="handleKeydown" >
-    <div id="editor">
+    <div id="workspace">
       <div id="editor-container" class="container">
         <div class="label-bar">
           <h2>Script</h2>
         </div>
-        <textarea id="script-editor" placeholder="Script will go here" disabled="true" name="script">
+        <div id="editor-status" class="status"></div>
+        <textarea id="editor" placeholder="Input your cityscript here" name="script">
         </textarea>
       </div>
       <div id="output-container" class="container">
         <div class="label-bar">
           <h2>Output</h2>
         </div>
+        <div id="output-status" class="status"></div>
         <div id="output" class="vertscroll">
         </div>
       </div>
     </div>
     <div id="button-bar">
       <div id="button-box">
-        <button id="generate-button" onclick="generate" >Generate</button>
+        <button id="generate-button" onclick="generate" >Generate <span class="fas"></class></button>
       </div>
     </div>
   </body>

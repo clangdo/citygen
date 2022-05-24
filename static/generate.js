@@ -1,7 +1,35 @@
+function createImageDropdown(image, categoryName) {
+  const container = document.createElement('div');
+  container.setAttribute('class', 'container texture-container output-result');
+
+  stateSymbol = document.createElement('span');
+  stateSymbol.setAttribute('class', 'drawer-icon fas')
+  stateSymbol.textContent = '';
+
+  title = document.createElement('span');
+  title.textContent = categoryName
+  
+  helpText = document.createElement('span');
+  helpText.setAttribute('class', 'grow right-align drawer-helptext helptext');
+  helpText.textContent = '(click to collapse)'
+  
+  const headerButton = document.createElement('button');
+  headerButton.setAttribute('class', 'header-button');
+  headerButton.setAttribute('onclick', 'textureDrawer');
+  headerButton.appendChild(stateSymbol)
+  headerButton.appendChild(title)
+  headerButton.appendChild(helpText)
+  
+  container.appendChild(headerButton);
+  container.appendChild(image);
+
+  return container;
+}
+
 function generate(ev) {
   const button = document.getElementById('generate-button');
   button.setAttribute('disabled', 'true');
-  button.textContent = "Generating…"
+  button.textContent = 'Generating…'
   
   // Remove all outputs from the output pane
   let outputs = document.getElementsByClassName('output-result')
@@ -9,42 +37,58 @@ function generate(ev) {
     outputs[0].remove()
   }
 
+
   let outputPane = document.getElementById('output');
-  // The following fetch was adapted from the highest rated answer here
-  // (the one by maxpoj on May 9, 2018).
-  // Referenced on Mon 25 Apr
+
+  const script = document.getElementById('editor').value;
+  // The following fetch was heavily  adapted from the
+  // highest rated answer here (the one by maxpoj on May 9, 2018).
   // https://stackoverflow.com/questions/50248329/fetch-image-from-api
+  // Referenced on Mon 25 Apr
   //
   // The key was URL.createObjectURL, I had no idea how to get the
   // data in memory as an url that the <img> tag could use, but
   // createObjectURL allows me to create an url to the data
   // returned by the fetch.
-  fetch('generate', {headers: {'Cache-Control': 'no-cache'}})
-    .then((response) => {
-      switch(response.status) {
-        case 200:
-          return response.blob()
-        case 503:
-          throw Error("Service unavailable")
-      }
-    })
-    .then((blob) => {
-      const url = URL.createObjectURL(blob)
-      const image = document.createElement('img');
-      image.setAttribute('class', 'texture output-result');
-      image.setAttribute('src', url);
-      outputPane.appendChild(image);
-    })
-    .catch((error) => {
-      const errorMessage = document.createElement('p');
-      errorMessage.textContent = error.toString(); // "Failed to obtain image from the service, is it down?";
-      errorMessage.setAttribute('class', 'error-message output-result');
-      outputPane.appendChild(errorMessage);
-    })
-    .finally(() => {
-      button.removeAttribute('disabled');
-      button.textContent = "Generate"
-    });
+  fetch('generate', {
+    method: 'POST',
+    headers: {
+      'Cache-Control': 'no-cache',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ cityscript: script }),
+  }).then((response) => {
+    if(response.status > 199 && response.status < 300) {
+      return response.blob();
+    } else if(response.status > 399 && response.status < 500) {
+      throw Error('Bad script input');
+    } else {
+      throw Error('Service unavailable');
+    }
+  }).then((blob) => {
+    const url = URL.createObjectURL(blob);
+    const image = document.createElement('img');
+
+    image.setAttribute('class', 'texture');
+    image.setAttribute('src', url);
+    outputPane.appendChild(createImageDropdown(image, "Albedo"));
+  }).catch((error) => {
+    // "Failed to obtain image from the service, is it down?";
+    
+    const errorMessage = document.createElement('p');
+    errorMessage.textContent = error.toString();
+    errorMessage.setAttribute('class', 'output-result error-message');
+    outputPane.appendChild(errorMessage);
+  }).finally(() => {
+
+    button.removeAttribute('disabled');
+    buttonIcon = document.createElement('span');
+    buttonIcon.setAttribute('class', 'fas')
+    buttonIcon.textContent = '';
+
+    button.textContent = 'Generate ';
+    button.appendChild(buttonIcon);
+  });
 }
 
 
@@ -54,7 +98,6 @@ function handleKeydown(ev) {
     generate(ev);
   }
 }
-
 
 let body = document.getElementById("body");
 let button = document.getElementById("generate-button");
