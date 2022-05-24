@@ -169,7 +169,7 @@ impl Builder {
             .map_err(|_| GenerateError::StatsService)?
             .json::<Json>()
             .await
-            .map_err(|_| { println!("{}", e); GenerateError::MalformedStats })?;
+            .map_err(|_| { GenerateError::MalformedStats })?;
         
         let horizontal_jitters = horizontal_response
             .get("data").ok_or(GenerateError::MalformedStats)?
