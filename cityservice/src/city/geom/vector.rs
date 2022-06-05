@@ -1,6 +1,6 @@
 use std::ops::{Add, Mul, MulAssign, Sub};
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Default)]
 pub struct Vector2 {
     pub x: f64,
     pub y: f64
@@ -20,8 +20,8 @@ impl Sub for Vector2 {
     type Output = Self;
     fn sub(self, rhs: Self) -> Self {
         Self {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y
+            x: self.x - rhs.x,
+            y: self.y - rhs.y
         }
     }
 }
@@ -32,6 +32,16 @@ impl Mul for Vector2 {
         Self {
             x: self.x * rhs.x,
             y: self.y * rhs.y
+        }
+    }
+}
+
+impl Mul<f64> for Vector2 {
+    type Output = Self;
+    fn mul(self, rhs: f64) -> Self {
+        Self {
+            x: self.x * rhs,
+            y: self.y * rhs
         }
     }
 }
@@ -52,9 +62,14 @@ impl From<Vector2i> for Vector2 {
     }
 }
 
+#[allow(unused)]
 impl Vector2 {
     pub fn mag(self) -> f64 {
         self.mag_squared().sqrt()
+    }
+
+    pub fn comp_sum(self) -> f64 {
+        self.x + self.y
     }
 
     pub fn mag_squared(self) -> f64 {
@@ -98,8 +113,8 @@ impl Sub for Vector2i {
     type Output = Self;
     fn sub(self, rhs: Self) -> Self {
         Self {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
         }
     }
 }
@@ -121,6 +136,7 @@ impl MulAssign for Vector2i {
     }
 }
 
+#[allow(unused)]
 impl Vector2i {
     pub fn mag(self) -> f64 {
         (self.mag_squared() as f64).sqrt()

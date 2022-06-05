@@ -20,6 +20,15 @@ impl Rectangle {
         }
     }
 
+    pub fn start(&self) -> Vector2 {
+        self.start
+    }
+
+    #[allow(dead_code)]
+    pub fn end(&self) -> Vector2 {
+        self.end
+    }
+
     pub fn width(&self) -> f64 {
         (self.end.x - self.start.x).abs()
     }
@@ -46,10 +55,18 @@ impl Rectangle {
         (startx..endx).flat_map(move |x| (starty..endy).map(move |y| Vector2i{ x, y } ))
     }
 
+    pub fn inset(&self, by: f64) -> Self {
+        Self {
+            start: self.start + Vector2 { x: by, y: by },
+            end: self.end - Vector2 { x: by, y: by },
+        }
+    }
+
     pub fn dimensions(&self) -> Vector2 {
         Vector2{ x: self.width(), y: self.height() }
     }
 
+    #[allow(dead_code)]
     pub fn contains(&self, point: Vector2) -> bool {
         point.east_of(self.start) && point.west_of(self.end) &&
             point.north_of(self.end) && point.south_of(self.start)
@@ -62,7 +79,20 @@ impl Rectangle {
         }
     }
 
-    pub fn intersects(&self, other: Rectangle) -> bool {
-        todo!()
+    pub fn translate(&self, by: Vector2) -> Self {
+        Self {
+            start: self.start + by,
+            end: self.end + by
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn intersects(&self, other: &Rectangle) -> bool {
+        (other.start.x..other.end.x).contains(&self.start.x) ||
+            (other.start.x..other.end.x).contains(&self.end.x) &&
+            (other.end.y < self.start.y || other.start.y < self.end.y) ||
+            (other.start.y..other.end.y).contains(&self.start.y) ||
+            (other.start.y..other.end.y).contains(&self.end.y) &&
+            (other.end.x < self.start.x || other.start.x < self.end.x)
     }
 }

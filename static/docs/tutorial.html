@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="static/docs/style.css" />
+    <title> Cityscript Tutorial </title>
+  </head>
+  <body id="body" lang="en-US">
+    <article>
+      <h2> Getting Started </h2>
+      <h3> Is cityscripting necessary? </h3>
+      <p>
+        In short, no. The first thing to know about cityscript is that
+        generating cities works without any scripting!  A blank script
+        will provide you with a full set of default values for
+        everything the service needs to generate something that looks
+        decent (subjectively).
+      </p>
+      <p>
+        Further, if you'd like to tweak just one thing, you don't have
+        to override every default, you can selectively edit the
+        appearance of the city.
+      </p>
+      <p>
+        In order to observe the results of the default settings, you
+        can click the big green generate button in the interface
+        without typing a word into the script. You can open the
+        interface <a href="/" target="_blank">in a new tab</a>
+        and close it when you're finished to return here.
+      </p>
+      <p>
+        Shortly after clicking, you should see a city image pop up in
+        an &quot;Albedo&quot; panel on the right side of the editor.
+        This is because you sent a blank cityscript to the service, so
+        it used fully default settings for everything.
+      </p>
+
+      <h3>Making our city smaller</h3>
+      <p>
+        One of the simplest things to do is change the dimensions of
+        your city. There are two sets of dimensions that cityscripting
+        can change, the <code>city</code> dimensions, and the
+        <code>image</code> dimensions. Maybe we want to have a much
+        smaller area appear, but we want to keep the number of pixels
+        in the image the same. We can do this by changing the <code>city</code> dimensions. By
+        default we have a 1km x 1km city, you can find this, and other
+        defaults in the <a href="/docs/reference.html" target="_blank">reference</a>.
+      </p>
+
+      <p>
+        To shrink our rendered city we can type the following.
+      </p>
+      <pre>
+let city.width be 500m<br>
+let city.height be 500m
+      </pre>
+      <p>It's recommended to use units for distances, but it's not
+        imperative, cityscript understands <code>m</code> for meters
+        and <code>km</code> for kilometers.
+      </p>
+
+      <p>
+        Now that you've typed that (make sure each let statement is
+        on its own line), go ahead and click the Generate button again,
+        you should see much larger rectangular buildings now, and the
+        streets should look larger too!
+      </p>
+
+      <h3>Distributions, distributions, distributions</h3>
+      <p>
+        You may notice that if you click the generate button multiple
+        times you won't be left with the same city, this is because
+        the roads and gaps between buildings are randomly placed based
+        on a density distribution.
+      </p>
+
+      <p>
+        Basically, gaps in the city are spaced out with a random
+        number. And you can control the range of this random number.
+      </p>
+
+      <p>
+        For example, maybe you want a city where the blocks are tall
+        rectangles. To get that kind of look, the horizontal density
+        of the streets would have to be higher than the vertical
+        density.
+      </p>
+
+      <p>
+        The city streets have a two dimensional density distribution.
+        To make them taller than they are wide we can do the following
+      </p>
+
+      <p>
+        For example, maybe you want a city where the blocks are tall
+        rectangles. To get that kind of look, the horizontal density
+        of the streets would have to be higher than the vertical
+        density. To do this, you can do the following.
+      </p>
+
+      <pre>
+let roads.density.x.max be 20/km
+let roads.density.x.min be 10/km
+let roads.density.y.max be 5/km
+let roads.density.y.max be 3/km
+      </pre>
+
+      <p>
+        You can also change the distribution type. Most things are
+        normally distributed by default, but some are uniformly
+        distributed, if we wanted our streets to be spaced with a
+        uniform distribution rather than a normal distribution, we
+        could use the following
+      </p>
+
+      <pre>
+let roads.density.x.distribution be uniform
+let roads.density.y.distribution be uniform
+      </pre>
+
+      <p>
+        Distributions can also be constant, in which case they'll
+        always use the max value. Distributions can also be skewed
+        (when they're normal), like shown below, make sure to delete
+        your uniform changes, otherwise the skewing below won't do
+        anything.
+      </p>
+
+      <pre>
+let roads.density.x.skew be 2.0
+let roads.density.y.skew be 0.5
+      </pre>
+
+      <p>See how this can also be a good way to get a rectangular look?</p>
+
+      <h3>Conclusion</h3>
+
+      Now you're ready to mess with some things, try changing the following distributions.
+      <pre>
+roads.density.x
+roads.density.y
+roads.breadth
+buildings.density.x
+buildings.density.y
+buildings.roof.tint
+buildings.roof.border
+sidewalks.breadth
+alleys.breadth
+
+buildings.walls.stepback
+      </pre>
+
+      <p>That last one steps the back walls of buildings further from
+        the street, too far and you may get overlapping. Anyway, enjoy playing!</p>
+    </article>
+  </body>
+</html>

@@ -6,18 +6,20 @@
     <link rel="stylesheet" href="static/style.css" />
     <!-- The following line is adapted from https://fontawesome.com/docs/web/setup/host-yourself/webfonts -->
     <link rel="stylesheet" href="vendor/fontawesome-free-6.1.1/css/solid.css" />
+    <title> Cityscripter </title>
     <script src="static/generate.js" defer="true"></script>
     <script src="static/collapse.js" defer="true"></script>
   </head>
-  <body id="body" lang="en-US" onkeydown="handleKeydown" >
+  <body id="body" lang="en-US" onkeydown="handleKeydown(event)" >
     <div id="workspace">
       <div id="editor-container" class="container">
         <div class="label-bar">
-          <h2>Script</h2>
+          <h2>Script</h2><div class="spacer"></div>
+          <a href="/docs/welcome.html" target="_blank">Learn to write cityscript </a>
         </div>
         <div id="editor-status" class="status"></div>
-        <textarea id="editor" placeholder="Input your cityscript here" name="script">
-        </textarea>
+        <textarea id="editor" placeholder= "Input your cityscript here or click the &quot;Generate&quot; button to make a default city."
+                  name="script"></textarea>
       </div>
       <div id="output-container" class="container">
         <div class="label-bar">
@@ -30,7 +32,7 @@
     </div>
     <div id="button-bar">
       <div id="button-box">
-        <button id="generate-button" onclick="generate" >Generate <span class="fas"></class></button>
+        <button id="generate-button" onclick="generate(event)" >Generate <span class="fas"></class></button>
       </div>
     </div>
   </body>

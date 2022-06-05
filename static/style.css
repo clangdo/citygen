@@ -10,6 +10,8 @@
   --fg-gray: #222;
   --fg-gray-hover: #444;
 
+  --editor-status-bg-color: #FFC;
+
   --border-width: 0.2rem;
   --button-bar-height: 5rem;
 
@@ -139,7 +141,12 @@ html, body {
   max-height: 100vh;
 }
 
+.spacer {
+  min-width: 1rem;
+}
+
 .status {
+  background-color: var(--editor-status-bg-color);
   min-height: var(--editor-status-height);
 }
 
@@ -177,12 +184,14 @@ html, body {
   flex-shrink: 0;
   max-height: calc(100% - var(--label-bar-height) - var(--editor-status-height) - var(--border-width));
   display: flex;
-  align-items: flex-start;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
 }
 
 #output>* {
   max-width: 90%;
+  margin: 1rem 0;
 }
 
 .vertscroll {

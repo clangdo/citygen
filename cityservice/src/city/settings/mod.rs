@@ -1,6 +1,11 @@
 mod setting;
 pub use setting::Setting as Setting;
 
+pub mod config;
+
+mod error;
+pub use error::*;
+
 mod tree;
 use tree::TreeMap;
 
@@ -8,13 +13,16 @@ pub struct Settings {
     tree: TreeMap<Setting>,
 }
 
-#[derive(Debug)]
-pub enum Error {
-    NonexistantSetting,
-}
 
-impl Settings {
-    pub fn new() -> Self {
+impl Default for Settings {
+    /// This creates a new default set of settings
+    ///
+    /// These settings are suitable for creating a city, it will be
+    /// 1km x 1km, and it will render to an image of 2048x2048.
+    ///
+    /// Default feature densities and other defaults can be looked up
+    /// in the cityscript reference.
+    fn default() -> Self {
         let mut tree = TreeMap::<Setting>::new();
         // Image parameters, these control properties of the image
         // returned by the service
@@ -30,25 +38,135 @@ impl Settings {
         tree.add(["city", "width"], 1000.0);
         tree.add(["city", "height"], 1000.0);
 
-        tree.add(["roads", "breadth"], 12.0);
+        tree.add(["roads", "breadth", "skew"], 1.0);
         tree.add(["roads", "breadth", "distribution"], "normal");
-        tree.add(["roads", "breadth", "min"], 15.0);
-        tree.add(["roads", "breadth", "max"], 6.0);
+        tree.add(["roads", "breadth", "min"], 6.0);
+        tree.add(["roads", "breadth", "max"], 15.0);
 
         // The road generation parameters
         for dimension in ["x", "y"] {
-            tree.add(["roads", "density", dimension], 1.0/100.0);
+            tree.add(["roads", "density", dimension, "skew"], 1.0);
             tree.add(["roads", "density", dimension, "distribution"], "normal");
-            tree.add(["roads", "density", dimension, "min"], 0.5/100.0);
+            tree.add(["roads", "density", dimension, "min"], 0.1/100.0);
             tree.add(["roads", "density", dimension, "max"], 2.0/100.0);
 
-            tree.add(["buildings", "density", dimension], 4.0/100.0);
+            tree.add(["buildings", "density", dimension, "skew"], 1.0);
             tree.add(["buildings", "density", dimension, "distribution"], "normal");
-            tree.add(["buildings", "density", dimension, "min"], 2.0/100.0);
-            tree.add(["buildings", "density", dimension, "max"], 8.0/100.0);
+            tree.add(["buildings", "density", dimension, "min"], 1.0/100.0);
+            tree.add(["buildings", "density", dimension, "max"], 7.0/100.0);
         }
 
+        tree.add(["buildings", "roof", "border", "skew"], 1.0);
+        tree.add(["buildings", "roof", "border", "distribution"], "normal");
+        tree.add(["buildings", "roof", "border", "max"], 2.0);
+        tree.add(["buildings", "roof", "border", "min"], 1.0);
+
+        tree.add(["buildings", "roof", "tint", "skew"], 1.0);
+        tree.add(["buildings", "roof", "tint", "distribution"], "uniform");
+        tree.add(["buildings", "roof", "tint", "max"], 1.0);
+        tree.add(["buildings", "roof", "tint", "min"], 0.0);
+
+        tree.add(["buildings", "walls", "stepback", "skew"], 1.0);
+        tree.add(["buildings", "walls", "stepback", "distribution"], "uniform");
+        tree.add(["buildings", "walls", "stepback", "max"], 30.0);
+        tree.add(["buildings", "walls", "stepback", "min"], 10.0);
+
+        tree.add(["alleys", "breadth", "skew"], 1.0);
+        tree.add(["alleys", "breadth", "distribution"], "normal");
+        tree.add(["alleys", "breadth", "min"], 0.0);
+        tree.add(["alleys", "breadth", "max"], 1.0);
+
+        tree.add(["sidewalk", "breadth"], 1.5);
+        
         Self { tree }
+    }
+}
+
+impl Settings {
+    fn process_line(&mut self, line: &str) -> Result<(), LineError> {
+        let words: Vec<&str> = line.trim().split_whitespace().collect();
+        println!("{:?}", words);
+
+        Self::check_syntax(&words)?;
+
+        let key: Vec<&str> = words[1].split(".").collect();
+        let value = Self::parse_value(words[3])?;
+        self.set(key.clone(), value)
+            .map_err(|_| LineError::NonexistantSetting(Self::own_path(key)))?;
+
+        Ok(())
+    }
+
+    fn parse_quantitative(value_string: &str) -> Result<Setting, LineError> {
+        if value_string.ends_with("/km") {
+            Self::strip_suffix_and_parse::<f64>(
+                value_string,
+                Some("/km"),
+                1.0 / 1000.0
+            )
+        } else if value_string.ends_with("km") {
+            Self::strip_suffix_and_parse::<f64>(value_string, Some("km"), 1000.0)
+        } else if value_string.ends_with("/m") {
+            Self::strip_suffix_and_parse::<f64>(value_string, Some("/m"), 1.0)
+        } else if value_string.ends_with("m") {
+            Self::strip_suffix_and_parse::<f64>(value_string, Some("m"), 1.0)
+        } else if value_string.ends_with("px") {
+            Self::strip_suffix_and_parse::<u32>(value_string, Some("px"), 1)
+        } else {
+            Self::strip_suffix_and_parse::<f64>(value_string, None, 1.0)
+        }
+    }
+    
+    fn parse_qualitative(value_string: &str) -> Setting {
+        if value_string == "false" {
+            Setting::Bool(false)
+        } else if value_string == "true" {
+            Setting::Bool(true)
+        } else {
+            Setting::String(String::from(value_string))
+        }
+    }
+    
+    fn parse_value(value: &str) -> Result<Setting, LineError> {
+
+        if value.len() > 0 && value.chars().next().unwrap().is_digit(10) {
+            Self::parse_quantitative(value)
+        } else {
+            Ok(Self::parse_qualitative(value))
+        }
+    }
+
+    fn check_syntax(words: &Vec<&str>) -> Result<(), LineError> {
+        if words.len() != 4 {
+            return Err(LineError::WordCount)
+        } else if words[0] != "let" {
+            return Err(LineError::Syntax)
+        } else if words[2] != "be" {
+            return Err(LineError::Syntax)
+        } else {
+            Ok(())
+        }
+    }
+
+    /// This function strips the given suffix then tries to parse the
+    /// value as T. This function panics if the value does not end
+    /// with a given suffix.
+    fn strip_suffix_and_parse<T>(
+        value: &str,
+        suffix: Option<&str>,
+        multiplier: T,
+    ) -> Result<Setting, LineError> where
+        Setting: From<T>,
+        T: std::str::FromStr + std::ops::Mul<Output = T>
+    {
+        let mut value = value;
+        if let Some(suffix) = suffix {
+            value = value.strip_suffix(suffix).unwrap();
+        }
+
+        Ok(Setting::from(
+            value.parse::<T>().map_err(|_| LineError::ExpectedNumber)? * multiplier
+        ))
     }
 
     /// This function updates the settings tree with the values from
@@ -57,54 +175,54 @@ impl Settings {
     ///
     /// Note that any mispellings result in an error.
     pub fn update(&mut self, cityscript: &str) -> Result<(), Error> {
-        todo!();
-    }
-
-    pub fn get<'a, K>(&self, setting: K) -> Result<&Setting, Error> where
-        K: IntoIterator<Item = &'a str>
-    {
-        self.tree.get(setting).ok_or(Error::NonexistantSetting)
-    }
-
-    pub fn unwrap_bool<'a, K>(&self, setting: K) -> bool where
-        K: IntoIterator<Item = &'a str>
-    {
-        if let Setting::Bool(value) = self.get(setting).unwrap() {
-            *value
-        } else {
-            panic!("Cannot find a boolean setting that should always be there. \
-                    Please contact the developers.");
+        for (line_number, line) in cityscript.lines().enumerate() {
+            if line.trim() == "" {
+                continue;
+            }
+            
+            self.process_line(line).map_err(|err| {
+                match err {
+                    // Map this to the equivalent standard error type, because it exists
+                    LineError::NonexistantSetting(setting) => Error::NonexistantSetting(setting),
+                    // Otherwise, wrap this line error in the standard error type
+                    _ => Error::LineError {
+                        line: line_number as u32,
+                        cause: err,
+                    }
+                }
+            })?;
         }
+        Ok(())
+    }
+
+        ///
+    fn own_path(v: Vec<&str>) -> Vec<String> {
+        v.iter().map(|s| String::from(*s)).collect()
+    }
+
+    pub fn get<'selflife, T>(&'selflife self, path: Vec<&str>) -> Result<T, Error> where
+        T: TryFrom<&'selflife Setting, Error = setting::Error>,
+    {
+        let setting = self.tree.get(path.iter().copied())
+            .ok_or(Error::NonexistantSetting(Self::own_path(path.clone())))?;
+        T::try_from(setting).map_err(|_| Error::WrongType(Self::own_path(path)))
+    }
+
+    pub fn get_endpoint<'selflife, 'keylife, T>(
+        &'selflife self,
+        mut path: Vec<&'keylife str>,
+        endpoint: &'keylife str
+    ) -> Result<T, Error> where
+        T: TryFrom<&'selflife Setting, Error = setting::Error>,
+    {
+        path.push(endpoint);
+        self.get(path)
     }
     
-    pub fn unwrap_float<'a, K>(&self, setting: K) -> f64 where
-        K: IntoIterator<Item = &'a str>
+    fn set(&mut self, path: Vec<&str>, to: Setting) -> Result<(), Error>
     {
-        if let Setting::Float(value) = self.get(setting).unwrap() {
-            *value
-        } else {
-            panic!("Cannot find a float setting that should always be there. \
-                    Please contact the developers.");
-        }
-    }
-
-    pub fn unwrap_string<'a, K>(&self, setting: K) -> String where
-        K: IntoIterator<Item = &'a str>
-    {
-        if let Setting::String(value) = self.get(setting).unwrap() {
-            value.clone()
-        } else {
-            panic!("Cannot find a string setting that should always be there. \
-                    Please contact the developers.");
-        }
-    }
-    
-    fn set<'a, K>(&mut self, setting: K, to: Setting) -> Result<(), Error> where
-        K: IntoIterator<Item = &'a str>,
-    {
-        self.tree.set(setting, to).map_err(|error| {
-            match error {
-                tree::Error::NonexistantKey => Error::NonexistantSetting,
-            }})
+        self.tree.set(path.clone(), to).map_err(|_| {
+            Error::NonexistantSetting(Self::own_path(path))
+        })
     }
 }

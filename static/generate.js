@@ -15,10 +15,10 @@ function createImageDropdown(image, categoryName) {
   
   const headerButton = document.createElement('button');
   headerButton.setAttribute('class', 'header-button');
-  headerButton.setAttribute('onclick', 'textureDrawer');
-  headerButton.appendChild(stateSymbol)
-  headerButton.appendChild(title)
-  headerButton.appendChild(helpText)
+  headerButton.setAttribute('onclick', 'drawer(event)');
+  headerButton.appendChild(stateSymbol);
+  headerButton.appendChild(title);
+  headerButton.appendChild(helpText);
   
   container.appendChild(headerButton);
   container.appendChild(image);
@@ -57,13 +57,23 @@ function generate(ev) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ cityscript: script }),
-  }).then((response) => {
+  }).then(async (response) => {
     if(response.status > 199 && response.status < 300) {
       return response.blob();
     } else if(response.status > 399 && response.status < 500) {
-      throw Error('Bad script input');
+      let json = await response.json();
+      if(json.error !== undefined) {
+        throw Error(`${json.error}`);
+      } else {
+        throw Error('Bad script input');
+      }
     } else {
-      throw Error('Service unavailable');
+      let json = await response.json();
+      if(json.error !== undefined) {
+        throw Error(`${json.error}`);
+      } else {
+        throw Error('Service unavailable');
+      }
     }
   }).then((blob) => {
     const url = URL.createObjectURL(blob);
@@ -94,7 +104,7 @@ function generate(ev) {
 
 function handleKeydown(ev) {
   console.log(ev);
-  if (ev.key === 'g') {
+  if (ev.ctrlKey && ev.key === 'Enter') {
     generate(ev);
   }
 }
